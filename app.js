@@ -1,35 +1,63 @@
-const express = require("express")
-const app = express();
+const express       = require("express"),
+    app             = express(),
+    mongoose        = require('mongoose')
 
+mongoose.connect("mongodb://localhost/yelp_capm",{useNewUrlParser: true, useUnifiedTopology: true});
 app.set("view engine", "ejs")
 app.use(express.urlencoded({extended:true}))
 
-var campgrounds = [
-    {name: "Shimla" , image:"https://pixabay.com/get/52e8d4444255ae14f1dc84609620367d1c3ed9e04e507440762679d6934cc1_340.jpg"},
-    {name: "Kashmir" , image:"https://images.pexels.com/photos/699558/pexels-photo-699558.jpeg?auto=compress&cs=tinysrgb&h=350"},
-    {name: "Goa" , image:"https://images.pexels.com/photos/6757/feet-morning-adventure-camping.jpg?auto=compress&cs=tinysrgb&h=350"},
-    {name: "Nanital" , image:"https://images.pexels.com/photos/45241/tent-camp-night-star-45241.jpeg?auto=compress&cs=tinysrgb&h=350"},
-    {name: "Lakshdeep" , image:"https://images.pexels.com/photos/6757/feet-morning-adventure-camping.jpg?auto=compress&cs=tinysrgb&h=350"},
-    {name: "Maunt Abu" , image:"https://images.pexels.com/photos/45241/tent-camp-night-star-45241.jpeg?auto=compress&cs=tinysrgb&h=350"},
-    {name: "Manali" , image:"https://pixabay.com/get/52e8d4444255ae14f1dc84609620367d1c3ed9e04e507440762679d6934cc1_340.jpg"},
-    {name: "kerela" , image:"https://images.pexels.com/photos/699558/pexels-photo-699558.jpeg?auto=compress&cs=tinysrgb&h=350"}
-]
+//SCHEMA SETUP
+var campgroundSchema= new mongoose.Schema({
+    name:String,
+    image:String
+})
+
+var Campground =mongoose.model("Campground",campgroundSchema);
+
+//Create new Campground
+//Campground.create({
+//    name:"Finland, Stars Sky",
+//    image:"https://pixabay.com/get/57e9dc404d52a514f1dc84609620367d1c3ed9e04e507440712e7ad39248c0_340.jpg"
+//},function(err,campground){
+//    if(err){
+//        console.log(err)
+//    }
+//    else{
+//        console.log("Newly Created Campground : ")
+//        console.log(campground)
+//    }
+//})
+
 
 app.get("/", function(req, res){
     res.render("home")
 })
 
 app.get("/campgrounds", function(req,res){
-  
-    res.render("campgrounds",{campgrounds:campgrounds});
+  //Getting all the campgrounds from DB
+    Campground.find({}, function(err,campgrounds){
+        if(err){
+            console.log(err)
+        }
+        else
+        {
+            res.render("campgrounds",{campgrounds:campgrounds});
+        }
+    })
 })
 
 app.post("/campgrounds", function(req,res){
     var name=req.body.name;
     var image=req.body.image;
     var newcampground={name:name,image:image};
-    campgrounds.push(newcampground);
-    res.redirect("campgrounds")
+    Campground.create(newcampground, function(err,newlycreated){
+        if(err){
+            console.log(err)
+        }
+        else{
+            res.redirect("campgrounds")
+        }
+    });
 })
 
 app.get("/campgrounds/new", function(req,res){
