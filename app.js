@@ -1,15 +1,18 @@
+const { compile } = require("ejs");
+
 const express       = require("express"),
     app             = express(),
     mongoose        = require('mongoose')
 
-mongoose.connect("mongodb://localhost/yelp_capm",{useNewUrlParser: true, useUnifiedTopology: true});
+mongoose.connect("mongodb://localhost:27017/YelpCamp",{useNewUrlParser: true, useUnifiedTopology: true});
 app.set("view engine", "ejs")
 app.use(express.urlencoded({extended:true}))
 
 //SCHEMA SETUP
 var campgroundSchema= new mongoose.Schema({
     name:String,
-    image:String
+    image:String,
+    description:String
 })
 
 var Campground =mongoose.model("Campground",campgroundSchema);
@@ -41,7 +44,7 @@ app.get("/campgrounds", function(req,res){
         }
         else
         {
-            res.render("campgrounds",{campgrounds:campgrounds});
+            res.render("index",{campgrounds:campgrounds});
         }
     })
 })
@@ -49,7 +52,8 @@ app.get("/campgrounds", function(req,res){
 app.post("/campgrounds", function(req,res){
     var name=req.body.name;
     var image=req.body.image;
-    var newcampground={name:name,image:image};
+    var desc=req.body.description;
+    var newcampground={name:name,image:image,description:desc};
     Campground.create(newcampground, function(err,newlycreated){
         if(err){
             console.log(err)
@@ -64,7 +68,18 @@ app.get("/campgrounds/new", function(req,res){
     res.render("new.ejs")
 })
 
+app.get("/campgrounds/:id", function(req,res){
+    Campground.findById(req.params.id, function(err,foundcampground){
+        if(err){
+            console.log(err)
+        }
+        else{
+            res.render("show",{campground:foundcampground})
+        }
+    })
+})
+
 
 app.listen(3000, function(){
-    console.log("YelpCamp server started at http://localhost:3000/")
+    console.log("YelpCamp server has Started !!")
 })
